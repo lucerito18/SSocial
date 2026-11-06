@@ -38,7 +38,7 @@ demo = gr.Interface(
     ],
     title="Sistema multiagente: PDF a Diapositivas",
     description=(
-        "Sube un PDF. Seis agentes trabajan en cadena (Lector, Recopilador, Seccionador, "
+        "Sube un PDF. Seis agentes trabajan en cadena (Lector, Recopilador, Seleccionador, "
         "Ilustrador, Generador, Decorador) supervisados por un Jefe que valida con reglas y con IA, "
         "corrige y te entrega un informe de quién hizo qué y por qué. Las imágenes vienen de "
         "Wikimedia Commons con su crédito."

@@ -10,7 +10,7 @@ from pptx.enum.dml import MSO_FILL
 from pptx.util import Inches
 
 import config  # noqa: F401  (configura Gemini)
-from agentes import Lector, Recopilador, Seccionador, Ilustrador, GeneradorPPTX, Decorador
+from agentes import Lector, Recopilador, Seleccionador, Ilustrador, GeneradorPPTX, Decorador
 from config import MAX_INTENTOS, TITULO_FUENTES
 from pptx_utils import _imagenes
 from utils import (llamar_llm, parsear_json, num_palabras, _chk, _recortar_texto,
@@ -92,7 +92,7 @@ class Jefe:
                 _chk(c, "Todas las referencias aparecen realmente en el PDF (anti-invención)",
                      not inventadas,
                      f"Estas referencias no aparecen en el documento, quítalas: {inventadas}")
-        elif nombre == "Seccionador":
+        elif nombre == "Seleccionador":
             c += self._checks_plan(s["slides"], s.get("razonamiento"))
             if all(r["ok"] or not r["bloquea"] for r in c):  # la IA revisa solo si pasó las reglas fijas
                 try:
@@ -295,7 +295,7 @@ class Jefe:
                 "Esta es la presentación FINAL generada a partir del DOCUMENTO. Califica del 1 al 10 su "
                 "calidad (claridad, coherencia, fidelidad al documento, equilibrio entre texto e "
                 "imágenes). Indica fortalezas y problemas. Si hay problemas, di qué agente debería "
-                "revisarse (Lector, Recopilador, Seccionador, Ilustrador, Generador PPTX o Decorador).\n"
+                "revisarse (Lector, Recopilador, Seleccionador, Ilustrador, Generador PPTX o Decorador).\n"
                 'Responde {"calificacion": <1-10>, "fortalezas": ["..."], "problemas": ["..."], '
                 '"agente_a_revisar": "<nombre o null>", "veredicto": "<una frase>"}\n\n'
                 "DOCUMENTO:\n" + _recortar_texto(self.texto_original, 8000)
@@ -392,7 +392,7 @@ class Jefe:
             feedback = "- " + "\n- ".join(problemas)
 
         # Se acabaron los intentos: el Jefe interviene si puede
-        if agente.nombre == "Seccionador" and res:
+        if agente.nombre == "Seleccionador" and res:
             nuevo, cambios = self._corregir_plan(res["salida"])
             revisiones = self._checks_plan(nuevo["slides"], nuevo["razonamiento"])
             if all(r["ok"] or not r["bloquea"] for r in revisiones):
@@ -401,7 +401,7 @@ class Jefe:
                     {
                         "recibio": f"Plan rechazado {MAX_INTENTOS} veces",
                         "entrego": f"Plan de {len(nuevo['slides'])} diapositivas corregido",
-                        "razonamiento": "El Seccionador no logró cumplir las reglas tras varios intentos, "
+                        "razonamiento": "El Seleccionador no logró cumplir las reglas tras varios intentos, "
                                         "así que apliqué los ajustes mínimos necesarios yo mismo.",
                         "detalle": "\n".join(sorted(set(cambios))) or
                                    ("Sin cambios de formato. Se aceptó con las observaciones pendientes:\n"
@@ -436,7 +436,7 @@ class Jefe:
         resumen = self._supervisar(Recopilador(), lectura)
         self.secciones = resumen.get("secciones", [])
         self.n_temas = len(self.secciones)
-        plan = self._supervisar(Seccionador(self.tope), resumen)
+        plan = self._supervisar(Seleccionador(self.tope), resumen)
         plan = {**plan, "documento": os.path.basename(pdf_path), "referencias": resumen.get("referencias", [])}
         respaldo = {**plan, "slides": [{k: v for k, v in s.items() if k != "imagen"} for s in plan["slides"]]}
         plan = self._supervisar(Ilustrador(carpeta), plan, opcional=True, respaldo=respaldo)
