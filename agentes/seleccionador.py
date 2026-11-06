@@ -3,7 +3,7 @@ import json
 from agentes.base import Agente
 from utils import llamar_llm, parsear_json, con_feedback
 
-SYS_SECCIONADOR = """
+SYS_SELECCIONADOR = """
 Eres un asistente experto en diseño de presentaciones. Decides cuántas
 diapositivas se necesitan, qué información va en cada una y en qué formato,
 pensando en explicarlas en voz alta frente a una audiencia.
@@ -51,8 +51,8 @@ EJEMPLO_SLIDES = {
 }
 
 
-class Seccionador(Agente):
-    nombre = "Seccionador"
+class Seleccionador(Agente):
+    nombre = "Seleccionador"
     rol = "Decide cuántas diapositivas hay y qué formato y contenido lleva cada una (IA)"
 
     def __init__(self, tope):
@@ -73,7 +73,7 @@ class Seccionador(Agente):
             '"temas": [1], "tipo": "...", "parrafo": "...", "bullets": ["..."]}]}.\n\n'
             "RESUMEN:\n" + json.dumps(resumen, ensure_ascii=False)
         )
-        data = parsear_json(llamar_llm(SYS_SECCIONADOR, con_feedback(prompt, feedback)))
+        data = parsear_json(llamar_llm(SYS_SELECCIONADOR, con_feedback(prompt, feedback)))
         slides = data["slides"]
 
         detalle = []
