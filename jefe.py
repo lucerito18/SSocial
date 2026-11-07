@@ -203,8 +203,9 @@ class Jefe:
     def _checks_plan(self, slides, razonamiento):
         c = []
         n = len(slides)
-        _chk(c, f"Entre 3 y {self.tope} diapositivas de contenido (tope según las páginas del PDF)",
-             3 <= n <= self.tope, f"Hay {n} diapositivas; debe haber entre 3 y {self.tope}")
+        minimo = max(3, self.n_temas)
+        _chk(c, f"Entre {minimo} y {self.tope} diapositivas de contenido (al menos una por tema)",
+             minimo <= n <= self.tope, f"Hay {n} diapositivas; debe haber entre {minimo} y {self.tope}")
         malos = [i for i, sl in enumerate(slides, 1) if not sl.get("title") or num_palabras(sl["title"]) > 8]
         _chk(c, "Títulos de máximo 8 palabras", not malos,
              f"Títulos vacíos o de más de 8 palabras en las diapositivas {malos}")
@@ -251,7 +252,8 @@ class Jefe:
         temas_mal = [i for i, sl in enumerate(slides, 1) if not temas_validos(sl)]
         _chk(c, "Cada diapositiva indica qué temas del Recopilador cubre (números válidos)", not temas_mal,
              f"Falta 'temas' o tiene números inválidos (1 a {self.n_temas}) en las diapositivas {temas_mal}")
-        cubiertos = {x for sl in slides if temas_validos(sl) for x in sl["temas"]}
+        intermedias = slides[1:-1] if len(slides) > 2 else slides
+        cubiertos = {x for sl in intermedias if temas_validos(sl) for x in sl["temas"]}
         faltan = sorted(set(range(1, self.n_temas + 1)) - cubiertos)
         _chk(c, "Cobertura: todos los temas del Recopilador aparecen en alguna diapositiva", not faltan,
              "Ninguna diapositiva cubre los temas " + ", ".join(

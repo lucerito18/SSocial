@@ -66,7 +66,9 @@ class Seleccionador(Agente):
             "Ejemplo del formato esperado (solo la estructura, no el contenido):\n"
             + json.dumps(EJEMPLO_SLIDES, ensure_ascii=False)
             + "\n\nAhora, con base en este resumen del documento, arma las diapositivas de contenido. "
-            f"Decide TÚ cuántas hacen falta (mínimo 3, máximo {self.tope}): si el documento es una "
+            f"Decide TÚ cuántas hacen falta (mínimo {max(3, len(entrada.get('secciones', [])))}, máximo {self.tope}), "
+            "con al menos una diapositiva propia por cada tema, sin contar introducción ni conclusión: "
+            "si el documento es una "
             "colección de unidades (recetas, casos, capítulos, secciones), usa una diapositiva por unidad "
             "(o más si la unidad es larga); si no, las que pida el contenido. Todos los temas deben quedar "
             'cubiertos. Devuelve SOLO el JSON {"razonamiento": "...", "slides": [{"title": "...", '

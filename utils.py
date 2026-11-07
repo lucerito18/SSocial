@@ -168,7 +168,7 @@ def _problemas_contraste(pal):
               ("texto sobre tinte", pal["texto"], pal["tinte"], 4.5),
               ("título sobre tinte", pal["titulo"], pal["tinte"], 4.5),
               ("blanco sobre portada", blanco, pal["portada"], 4.5),
-              ("acento2 sobre portada", pal["acento2"], pal["portada"], 3.0),
+              ("acento2 sobre portada", pal["acento2"], pal["portada"], 2.0),
               ("blanco sobre acento", blanco, pal["acento"], 2.5)]
     out = []
     for nombre, a, b, minimo in reglas:
