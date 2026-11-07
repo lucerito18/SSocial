@@ -1,9 +1,10 @@
 import os
-import google.generativeai as genai
 
-# La API key se lee de la variable de entorno configurada en Render
-genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-MODEL_NAME = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite")
+GROQ_API_KEY = os.environ["GROQ_API_KEY"]
+API_URL = "https://api.groq.com/openai/v1/chat/completions"
+# Si Groq cambia los nombres, puedes sobrescribirlos desde Render sin tocar el código
+MODEL_NAME = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
+VISION_MODEL = os.environ.get("GROQ_VISION_MODEL", "meta-llama/llama-4-scout-17b-16e-instruct")
 
 MAX_INTENTOS = 3      # cuántas veces el Jefe deja reintentar a un agente
 TOPE_IMAGENES = 12    # tope absoluto de imágenes por presentación
