@@ -75,15 +75,16 @@ class Seleccionador(Agente):
         )
         data = parsear_json(llamar_llm(SYS_SELECCIONADOR, con_feedback(prompt, feedback)))
         slides = data["slides"]
-
-        detalle = []
-        for i, sl in enumerate(slides, 1):
-            temas = ", ".join(str(t) for t in (sl.get("temas") or []))
-            detalle.append(f"Diapositiva {i} [{sl.get('tipo', '?')}]: {sl.get('title', '?')}   (cubre temas: {temas or '-'})")
-            if sl.get("parrafo"):
-                detalle.append(f"   Texto: {sl['parrafo']}")
-            for b in sl.get("bullets", []):
-                detalle.append(f"   - {b}")
+        
+        # Normaliza 'temas': si falta o es inválido, la diapositiva cubre todos los temas
+        
+        n_temas = len(entrada.get("secciones", []))
+        todos = list(range(1, n_temas + 1))
+        for sl in slides:
+            t = sl.get("temas")
+            validos = [x for x in t if isinstance(x, int) and not isinstance(x, bool)
+                       and 1 <= x <= n_temas] if isinstance(t, list) else []
+            sl["temas"] = validos or todos
 
         return {
             "salida": {

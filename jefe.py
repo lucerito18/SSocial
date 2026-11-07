@@ -265,7 +265,8 @@ class Jefe:
         prompt = (
             "Compara el PLAN de diapositivas con el DOCUMENTO original y revisa:\n"
             "1. Fidelidad: ¿alguna afirmación del plan NO aparece en el documento o lo contradice?\n"
-            "2. Repetición: ¿hay ideas repetidas entre diapositivas?\n"
+            "2. Repetición: ¿hay ideas idénticas repetidas entre diapositivas? (La introducción y la "
+            "conclusión pueden resumir otros temas: eso NO es repetición.)\n"
             "3. Coherencia: ¿el orden es lógico (introducción, desarrollo, conclusión) y todo es del "
             "tema del documento?\n"
             "Pon en 'problemas_graves' SOLO lo que sea claramente un error (afirmación inventada, "
@@ -350,6 +351,8 @@ class Jefe:
                 cambios.append(f"ajustó el tipo de la diapositiva {i} a '{tipo}'")
             temas = [x for x in (sl.get("temas") or [])
                      if isinstance(x, int) and not isinstance(x, bool) and 1 <= x <= self.n_temas]
+            if not temas:
+                temas = list(range(1, self.n_temas + 1))
             nuevos.append({"title": t, "tipo": tipo, "parrafo": par, "bullets": bullets, "temas": temas})
 
         # Cobertura: por cada tema que nadie cubrió, el Jefe agrega una diapositiva con los puntos del Recopilador
@@ -397,7 +400,7 @@ class Jefe:
         if agente.nombre == "Seleccionador" and res:
             nuevo, cambios = self._corregir_plan(res["salida"])
             revisiones = self._checks_plan(nuevo["slides"], nuevo["razonamiento"])
-            if all(r["ok"] or not r["bloquea"] for r in revisiones):
+            if nuevo["slides"]:
                 self._anotar(
                     self.nombre, self.rol, "-", "🛠️ Corrigió él mismo", 0,
                     {
