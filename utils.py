@@ -9,6 +9,20 @@ import requests
 
 from config import API_URL, GROQ_API_KEY, MODEL_NAME, VISION_MODEL, TOPE_IMAGENES
 
+REGLA_JSON = (
+    "\n\nIMPORTANTE: tu respuesta debe ser JSON estrictamente válido. NO uses comillas dobles dentro "
+    "de los textos (usa « » o comillas simples), no pongas comas finales y no uses saltos de línea "
+    "dentro de los textos."
+)
+
+
+def _espera_429(texto, intento):
+    """Lee del mensaje de Groq cuántos segundos hay que esperar."""
+    m = re.search(r"try again in (?:(\d+)m)?([\d.]+)s", texto)
+    if m:
+        return int(m.group(1) or 0) * 60 + float(m.group(2)) + 1
+    return 5 * (intento + 1)
+
 
 def llamar_llm(system_instruction, prompt):
     """Una llamada al LLM. 'prompt' puede ser texto o una lista (texto + imágenes)."""
@@ -27,29 +41,38 @@ def llamar_llm(system_instruction, prompt):
 
     payload = {
         "model": VISION_MODEL if hay_imagen else MODEL_NAME,
-        "messages": [{"role": "system", "content": system_instruction},
+        "messages": [{"role": "system", "content": system_instruction + REGLA_JSON},
                      {"role": "user", "content": contenido}],
-        "temperature": 0.3,
+        "temperature": 0.2,
+        "reasoning_effort": "low",
         "response_format": {"type": "json_object"},
     }
     headers = {"Authorization": f"Bearer {GROQ_API_KEY}"}
 
-    for intento in range(4):
+    for intento in range(7):
         r = requests.post(API_URL, json=payload, headers=headers, timeout=120)
-        if r.status_code == 400 and "response_format" in payload:
-            payload.pop("response_format")   # el modelo no soporta modo JSON: reintenta sin él
-            continue
-        if r.status_code == 429 and intento < 3:       # límite de uso: espera y reintenta
-            try:
-                espera = float(r.headers.get("retry-after", 5 * (intento + 1)))
-            except ValueError:
-                espera = 5 * (intento + 1)
-            time.sleep(min(espera, 30))
+        if r.status_code == 400:
+            # el modelo no soporta algún parámetro opcional: se quita y se reintenta
+            quitado = False
+            for k in ("reasoning_effort", "response_format"):
+                if k in payload:
+                    payload.pop(k)
+                    quitado = True
+                    break
+            if quitado:
+                continue
+        if r.status_code in (429, 503) and intento < 6:
+            if "tokens per day" in r.text:      # límite diario: esperar no sirve
+                break
+            espera = _espera_429(r.text, intento)
+            if espera > 75:
+                break
+            time.sleep(espera)
             continue
         break
     if not r.ok:
         raise RuntimeError(f"Error de la API ({r.status_code}): {r.text[:300]}")
-    return r.json()["choices"][0]["message"]["content"].strip()
+    return (r.json()["choices"][0]["message"]["content"] or "").strip()
 
 
 def parsear_json(raw):
@@ -57,7 +80,12 @@ def parsear_json(raw):
     ini, fin = raw.find("{"), raw.rfind("}")
     if ini == -1 or fin == -1:
         raise ValueError("la respuesta no contiene JSON")
-    return json.loads(raw[ini:fin + 1])
+    texto = raw[ini:fin + 1]
+    try:
+        return json.loads(texto, strict=False)
+    except json.JSONDecodeError:
+        texto = re.sub(r",\s*([}\]])", r"\1", texto)   # quita comas finales
+        return json.loads(texto, strict=False)
 
 
 def num_palabras(texto):
@@ -78,7 +106,7 @@ def con_feedback(prompt, feedback):
 
 def _max_imagenes(n_slides):
     """Cupo de imágenes según el tamaño de la presentación."""
-    return max(3, min(TOPE_IMAGENES, n_slides // 3))
+    return max(4, min(TOPE_IMAGENES, n_slides // 2))
 
 
 def _chk(lista, regla, ok, detalle="", bloquea=True):
@@ -91,7 +119,7 @@ def _limpiar_html(s):
     return re.sub(r"\s+", " ", unescape(re.sub(r"<[^>]+>", "", s or ""))).strip()
 
 
-def _recortar_texto(texto, limite=15000):
+def _recortar_texto(texto, limite=9000):
     """Si el PDF es largo, conserva inicio, parte del centro y final (ahí suele estar la bibliografía)."""
     if len(texto) <= limite:
         return texto
