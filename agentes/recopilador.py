@@ -43,12 +43,18 @@ class Recopilador(Agente):
             "referencias": ["referencia bibliográfica tal como aparece en el documento"],
         }
         prompt = (
-            "Lee el siguiente documento y extrae su información clave, agrupada "
-            "por temas (entre 4 y 10 temas, cada uno con 2 a 8 puntos). Si el documento es una "
-            "tabla o lista de elementos (lenguajes, productos, casos, etc.), incluye TODOS los "
-            "elementos, uno por punto, sin omitir ninguno.\n"
+            "Lee el siguiente documento y extrae su información clave, agrupada por temas "
+            "(entre 4 y 10 temas, cada uno con 2 a 8 puntos).\n"
+            "Reglas generales:\n"
+            "- Cada punto debe ser una frase informativa y autosuficiente (idea + dato clave), "
+            "nunca solo un nombre o una etiqueta.\n"
+            "- Si el documento enumera elementos (casos, productos, capítulos, ítems), cubre todos "
+            "con sus datos más relevantes, repartiéndolos en varios temas si son muchos.\n"
+            "- Agrupa por categorías reales según el propio documento y no mezcles elementos de "
+            "categorías distintas en un mismo tema.\n"
+            "- Usa solo lo que dice el documento; no completes con conocimiento externo.\n"
             "En 'referencias' copia (máximo 8) las fuentes bibliográficas o autores citados que "
-            "aparezcan en el documento. Si el documento no cita ninguna, devuelve una lista vacía. "
+            "aparezcan en el documento. Si no cita ninguna, devuelve una lista vacía. "
             "NO inventes ninguna.\n"
             "Estructura exacta: " + json.dumps(esquema, ensure_ascii=False) + "\n\n"
             'DOCUMENTO:\n"""\n' + _recortar_texto(entrada["texto"]) + '\n"""'

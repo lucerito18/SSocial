@@ -272,6 +272,8 @@ class Jefe:
             "contradicción, idea repetida, diapositiva fuera de tema), indicando el número de diapositiva. "
             "Los asuntos de estilo o mejoras opcionales van en 'sugerencias'. Si no hay problemas graves, "
             "deja la lista vacía.\n"
+            "Si algo del plan está mal agrupado o clasificado respecto al documento, indica "
+            "cómo corregirlo en 'problemas_graves'.\n"
             'Responde {"problemas_graves": ["diapositiva N: ..."], "sugerencias": ["..."], '
             '"veredicto": "<una frase>"}\n\n'
             "DOCUMENTO:\n" + _recortar_texto(self.texto_original) + "\n\nPLAN:\n"

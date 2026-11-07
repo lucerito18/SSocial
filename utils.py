@@ -92,10 +92,17 @@ def _limpiar_html(s):
 
 
 def _recortar_texto(texto, limite=15000):
-    """Si el PDF es largo, conserva el inicio y el final (ahí suele estar la bibliografía)."""
+    """Si el PDF es largo, conserva inicio, parte del centro y final (ahí suele estar la bibliografía)."""
     if len(texto) <= limite:
         return texto
-    return texto[:11500] + "\n[... texto omitido ...]\n" + texto[-3500:]
+    inicio, fin = int(limite * 0.4), int(limite * 0.2)
+    resto = limite - inicio - fin
+    medio_ini = len(texto) // 2 - resto // 2
+    return (texto[:inicio]
+            + "\n[... texto omitido ...]\n"
+            + texto[medio_ini:medio_ini + resto]
+            + "\n[... texto omitido ...]\n"
+            + texto[-fin:])
 
 
 def _referencia_en_texto(ref, texto_min):
