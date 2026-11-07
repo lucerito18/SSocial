@@ -44,7 +44,9 @@ class Recopilador(Agente):
         }
         prompt = (
             "Lee el siguiente documento y extrae su información clave, agrupada "
-            "por temas (entre 4 y 8 temas, cada uno con 2 a 5 puntos).\n"
+            "por temas (entre 4 y 10 temas, cada uno con 2 a 8 puntos). Si el documento es una "
+            "tabla o lista de elementos (lenguajes, productos, casos, etc.), incluye TODOS los "
+            "elementos, uno por punto, sin omitir ninguno.\n"
             "En 'referencias' copia (máximo 8) las fuentes bibliográficas o autores citados que "
             "aparezcan en el documento. Si el documento no cita ninguna, devuelve una lista vacía. "
             "NO inventes ninguna.\n"

@@ -431,7 +431,7 @@ class Jefe:
     def coordinar(self, pdf_path, ruta_pptx, carpeta):
         lectura = self._supervisar(Lector(), pdf_path)
         self.texto_original = lectura["texto"]
-        self.tope = min(60, max(10, int(lectura.get("paginas", 1))))   # 1 diapositiva por página, entre 10 y 60
+        self.tope = min(60, max(14, int(lectura.get("paginas", 1))))   # 1 diapositiva por página, entre 14 y 60
         self.texto_pdf = (lectura["texto"] + "\n" + lectura.get("texto_plumber", "")).lower()
         resumen = self._supervisar(Recopilador(), lectura)
         self.secciones = resumen.get("secciones", [])
