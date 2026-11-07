@@ -135,4 +135,37 @@ def _hex_a_rgb(h):
     h = str(h).strip().lstrip("#")
     if not re.fullmatch(r"[0-9a-fA-F]{6}", h):
         raise ValueError(f"color inválido: {h!r}")
-    return
+    return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
+
+
+def _a_hex(t):
+    return "#%02X%02X%02X" % tuple(t)
+
+
+def _luminancia(rgb):
+    def canal(v):
+        v = v / 255
+        return v / 12.92 if v <= 0.03928 else ((v + 0.055) / 1.055) ** 2.4
+    r, g, b = (canal(x) for x in rgb)
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def _contraste(a, b):
+    l1, l2 = sorted((_luminancia(a), _luminancia(b)), reverse=True)
+    return (l1 + 0.05) / (l2 + 0.05)
+
+
+def _problemas_contraste(pal):
+    blanco = (0xFF, 0xFF, 0xFF)
+    reglas = [("texto", pal["texto"], pal["fondo"], 4.5), ("título", pal["titulo"], pal["fondo"], 4.5),
+              ("texto sobre tinte", pal["texto"], pal["tinte"], 4.5),
+              ("título sobre tinte", pal["titulo"], pal["tinte"], 4.5),
+              ("blanco sobre portada", blanco, pal["portada"], 4.5),
+              ("acento2 sobre portada", pal["acento2"], pal["portada"], 3.0),
+              ("blanco sobre acento", blanco, pal["acento"], 2.5)]
+    out = []
+    for nombre, a, b, minimo in reglas:
+        r = _contraste(a, b)
+        if r < minimo:
+            out.append(f"contraste {nombre} = {r:.1f} (mínimo {minimo})")
+    return out
